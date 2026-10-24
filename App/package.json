@@ -1,0 +1,16 @@
+{
+  "name": "note-taking-app",
+  "version": "1.0.0",
+  "description": "Simple note taking app with 3 services",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f4f5f9;
+      min-height: 100vh;
+    }
+    .app-shell {
+      max-width: 780px;
+    }
+    .note-card {
+      border: 0;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, .06);
+      transition: box-shadow .15s ease, transform .15s ease;
+    }
+    .note-card:hover {
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .10);
+      transform: translateY(-1px);
+    }
+    .note-preview {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .min-w-0 {
+      min-width: 0;
+    }
+    .note-meta {
+      font-size: .78rem;
+    }
+    .btn {
+      transition: transform .1s ease;
+    }
+    .btn:active {
+      transform: scale(.98);
+    }
+    #notesList {
+      min-height: 140px;
+    }
+    .toast-container {
+      z-index: 1080;
+    }
+  </style>
+</head>
+<body class="py-4 py-md-5">
+  <div class="container app-shell">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h1 class="h3 fw-bold mb-1">Notes</h1>
+        <div class="text-muted small"><span id="noteCount">0</span> <span id="noteCountLabel">notes</span></div>
+      </div>
+      <button id="refreshBtn" class="btn btn-outline-secondary btn-sm" type="button">Refresh</button>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4" id="formCard">
+      <div class="card-body p-4">
+        <h2 class="h6 text-uppercase text-muted fw-semibold mb-3" id="formTitle">Add a note</h2>
+        <form id="noteForm" novalidate autocomplete="off">
+          <div class="mb-3">
+            <label for="noteTitle" class="form-label">Title</label>
+            <input type="text" class="form-control" id="noteTitle" placeholder="Give your note a title" maxlength="120" required>
+          </div>
+          <div class="mb-3">
+            <label for="noteContent" class="form-label">Content</label>
+            <textarea class="form-control" id="noteContent" rows="4" placeholder="Write something..." required></textarea>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-3" id="saveBtn">
+              <span class="spinner-border spinner-border-sm me-2 d-none" id="saveSpinner" role="status" aria-hidden="true"></span>
+              <span id="saveLabel">Save Note</span>
+            </button>
+            <button type="button" class="btn btn-outline-secondary d-none" id="cancelEditBtn">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="notesList">
+      <div class="text-center py-5" id="loadingState">
+        <div class="spinner-border text-secondary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title" id="deleteModalLabel">Delete note</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">Are you sure you want to delete <strong id="deleteTitle" class="text-break"></strong>? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+            <span class="spinner-border spinner-border-sm me-2 d-none" id="deleteSpinner" role="status" aria-hidden="true"></span>
+            <span id="deleteLabel">Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toasts" class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const state = {
+      notes: [],
+      editingId: null,
+      pendingDeleteId: null
+    };
+
+    const els = {
+      form: document.getElementById('noteForm'),
+      formTitle: document.getElementById('formTitle'),
+      title: document.getElementById('noteTitle'),
+      content: document.getElementById('noteContent'),
+      saveBtn: document.getElementById('saveBtn'),
+      saveSpinner: document.getElementById('saveSpinner'),
+      saveLabel: document.getElementById('saveLabel'),
+      cancelEditBtn: document.getElementById('cancelEditBtn'),
+      notesList: document.getElementById('notesList'),
+      noteCount: document.getElementById('noteCount'),
+      noteCountLabel: document.getElementById('noteCountLabel'),
+      refreshBtn: document.getElementById('refreshBtn'),
+      formCard: document.getElementById('formCard'),
+      deleteTitle: document.getElementById('deleteTitle'),
+      confirmDeleteBtn: document.getElementById('confirmDeleteBtn'),
+      deleteSpinner: document.getElementById('deleteSpinner'),
+      deleteLabel: document.getElementById('deleteLabel')
+    };
+
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+    async function api(url, options = {}) {
+      const response = await fetch(url, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options
+      });
+      if (!response.ok) {
+        let message = 'Something went wrong';
+        try {
+          const data = await response.json();
+          if (data && data.error) message = data.error;
+        } catch (e) {}
+        throw new Error(message);
+      }
+      if (response.status === 204) return null;
+      return response.json();
+    }
+
+    function toast(message, type = 'success') {
+      const container = document.getElementById('toasts');
+      const el = document.createElement('div');
+      el.className = 'toast align-items-center text-bg-' + type + ' border-0';
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-live', 'polite');
+      el.setAttribute('aria-atomic', 'true');
+      const flex = document.createElement('div');
+      flex.className = 'd-flex';
+      const body = document.createElement('div');
+      body.className = 'toast-body';
+      body.textContent = message;
+      const close = document.createElement('button');
+      close.type = 'button';
+      close.className = 'btn-close btn-close-white me-2 m-auto';
+      close.setAttribute('data-bs-dismiss', 'toast');
+      close.setAttribute('aria-label', 'Close');
+      flex.append(body, close);
+      el.appendChild(flex);
+      el.addEventListener('hidden.bs.toast', () => el.remove());
+      container.appendChild(el);
+      new bootstrap.Toast(el, { delay: 2200 }).show();
+    }
+
+    function formatDate(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+      return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    function setSaving(busy) {
+      els.saveBtn.disabled = busy;
+      els.cancelEditBtn.disabled = busy;
+      els.saveSpinner.classList.toggle('d-none', !busy);
+      els.saveBtn.classList.toggle('disabled', busy);
+    }
+
+    function enterEdit(note) {
+      state.editingId = note.id;
+      els.title.value = note.title;
+      els.content.value = note.content;
+      els.formTitle.textContent = 'Edit note #' + note.id;
+      els.saveLabel.textContent = 'Update Note';
+      els.cancelEditBtn.classList.remove('d-none');
+      els.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      els.title.focus({ preventScroll: true });
+    }
+
+    function exitEdit() {
+      state.editingId = null;
+      els.formTitle.textContent = 'Add a note';
+      els.saveLabel.textContent = 'Save Note';
+      els.cancelEditBtn.classList.add('d-none');
+    }
+
+    function noteCard(note) {
+      const card = document.createElement('div');
+      card.className = 'card note-card mb-3';
+      const body = document.createElement('div');
+      body.className = 'card-body p-3 p-md-4';
+      const row = document.createElement('div');
+      row.className = 'd-flex justify-content-between align-items-start gap-3';
+
+      const info = document.createElement('div');
+      info.className = 'flex-grow-1 min-w-0';
+      const heading = document.createElement('h6');
+      heading.className = 'card-title fw-semibold mb-1 text-break';
+      heading.textContent = note.title;
+      const text = document.createElement('p');
+      text.className = 'card-text text-muted mb-2 note-preview';
+      text.textContent = note.content;
+      const meta = document.createElement('div');
+      meta.className = 'text-secondary note-meta';
+      meta.textContent = formatDate(note.created_at);
+      info.append(heading, text, meta);
+
+      const actions = document.createElement('div');
+      actions.className = 'd-flex gap-2 flex-shrink-0';
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'btn btn-sm btn-outline-primary';
+      editBtn.textContent = 'Edit';
+      editBtn.addEventListener('click', () => enterEdit(note));
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn btn-sm btn-outline-danger';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.addEventListener('click', () => askDelete(note));
+      actions.append(editBtn, deleteBtn);
+
+      row.append(info, actions);
+      body.appendChild(row);
+      card.appendChild(body);
+      return card;
+    }
+
+    function render() {
+      els.notesList.innerHTML = '';
+      const total = state.notes.length;
+      els.noteCount.textContent = total;
+      els.noteCountLabel.textContent = total === 1 ? 'note' : 'notes';
+
+      if (!total) {
+        const empty = document.createElement('div');
+        empty.className = 'text-center text-muted py-5';
+        empty.innerHTML = '<p class="fs-5 mb-1">No notes yet</p><p class="mb-0 small">Add your first note using the form above.</p>';
+        els.notesList.appendChild(empty);
+        return;
+      }
+
+      const sorted = [...state.notes].sort((a, b) => b.id - a.id);
+      sorted.forEach(note => els.notesList.appendChild(noteCard(note)));
+    }
+
+    async function loadNotes() {
+      els.refreshBtn.disabled = true;
+      try {
+        state.notes = await api('/notes');
+        if (state.editingId && !state.notes.some(n => n.id === state.editingId)) {
+          exitEdit();
+        }
+        render();
+      } catch (err) {
+        toast(err.message, 'danger');
+      } finally {
+        els.refreshBtn.disabled = false;
+      }
+    }
+
+    function askDelete(note) {
+      state.pendingDeleteId = note.id;
+      els.deleteTitle.textContent = note.title;
+      els.confirmDeleteBtn.disabled = false;
+      els.deleteSpinner.classList.add('d-none');
+      deleteModal.show();
+    }
+
+    els.form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = els.title.value.trim();
+      const content = els.content.value.trim();
+      if (!title || !content) {
+        toast('Title and content are required', 'danger');
+        return;
+      }
+      setSaving(true);
+      try {
+        if (state.editingId) {
+          await api('/notes/' + state.editingId, {
+            method: 'PUT',
+            body: JSON.stringify({ title, content })
+          });
+          toast('Note updated');
+          exitEdit();
+        } else {
+          await api('/notes', {
+            method: 'POST',
+            body: JSON.stringify({ title, content })
+          });
+          toast('Note added');
+        }
+        els.form.reset();
+        await loadNotes();
+        els.title.focus();
+      } catch (err) {
+        toast(err.message, 'danger');
+      } finally {
+        setSaving(false);
+      }
+    });
+
+    els.cancelEditBtn.addEventListener('click', () => {
+      exitEdit();
+      els.form.reset();
+      els.title.focus();
+    });
+
+    els.confirmDeleteBtn.addEventListener('click', async () => {
+      const id = state.pendingDeleteId;
+      if (!id) return;
+      els.confirmDeleteBtn.disabled = true;
+      els.deleteSpinner.classList.remove('d-none');
+      try {
+        await api('/notes/' + id, { method: 'DELETE' });
+        deleteModal.hide();
+        if (state.editingId === id) exitEdit();
+        state.pendingDeleteId = null;
+        toast('Note deleted');
+        await loadNotes();
+      } catch (err) {
+        toast(err.message, 'danger');
+      } finally {
+        els.confirmDeleteBtn.disabled = false;
+        els.deleteSpinner.classList.add('d-none');
+      }
+    });
+
+    els.refreshBtn.addEventListener('click', loadNotes);
+
+    loadNotes();
+  </script>
+</body>
+</html>
