@@ -14,13 +14,16 @@ function validate(body) {
   return { title, content };
 }
 
+const ERR_REQUIRED = 'Le titre et le contenu sont obligatoires';
+const ERR_NOT_FOUND = 'Note introuvable';
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.post('/notes', (req, res) => {
   const data = validate(req.body || {});
-  if (!data) return res.status(400).json({ error: 'Title and content are required' });
+  if (!data) return res.status(400).json({ error: ERR_REQUIRED });
   res.status(201).json(createNote(data.title, data.content));
 });
 
@@ -30,29 +33,29 @@ app.get('/notes', (req, res) => {
 
 app.get('/notes/:id', (req, res) => {
   const note = getNote(req.params.id);
-  if (!note) return res.status(404).json({ error: 'Note not found' });
+  if (!note) return res.status(404).json({ error: ERR_NOT_FOUND });
   res.json(note);
 });
 
 app.put('/notes/:id', (req, res) => {
   const data = validate(req.body || {});
-  if (!data) return res.status(400).json({ error: 'Title and content are required' });
+  if (!data) return res.status(400).json({ error: ERR_REQUIRED });
   const note = updateNote(req.params.id, data.title, data.content);
-  if (!note) return res.status(404).json({ error: 'Note not found' });
+  if (!note) return res.status(404).json({ error: ERR_NOT_FOUND });
   res.json(note);
 });
 
 app.delete('/notes/:id', (req, res) => {
   const removed = deleteNote(req.params.id);
-  if (!removed) return res.status(404).json({ error: 'Note not found' });
+  if (!removed) return res.status(404).json({ error: ERR_NOT_FOUND });
   res.status(204).end();
 });
 
 app.use((err, req, res, next) => {
   if (err.type === 'entity.parse.failed') {
-    return res.status(400).json({ error: 'Invalid JSON' });
+    return res.status(400).json({ error: 'JSON invalide' });
   }
-  res.status(500).json({ error: 'Internal server error' });
+  res.status(500).json({ error: 'Erreur interne du serveur' });
 });
 
 const PORT = process.env.PORT || 3000;

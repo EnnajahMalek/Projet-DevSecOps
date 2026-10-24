@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -55,29 +55,29 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h1 class="h3 fw-bold mb-1">Notes</h1>
-        <div class="text-muted small"><span id="noteCount">0</span> <span id="noteCountLabel">notes</span></div>
+        <div class="text-muted small"><span id="noteCount">0</span> <span id="noteCountLabel">note</span></div>
       </div>
-      <button id="refreshBtn" class="btn btn-outline-secondary btn-sm" type="button">Refresh</button>
+      <button id="refreshBtn" class="btn btn-outline-secondary btn-sm" type="button">Actualiser</button>
     </div>
 
     <div class="card border-0 shadow-sm mb-4" id="formCard">
       <div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted fw-semibold mb-3" id="formTitle">Add a note</h2>
+        <h2 class="h6 text-uppercase text-muted fw-semibold mb-3" id="formTitle">Ajouter une note</h2>
         <form id="noteForm" novalidate autocomplete="off">
           <div class="mb-3">
-            <label for="noteTitle" class="form-label">Title</label>
-            <input type="text" class="form-control" id="noteTitle" placeholder="Give your note a title" maxlength="120" required>
+            <label for="noteTitle" class="form-label">Titre</label>
+            <input type="text" class="form-control" id="noteTitle" placeholder="Donnez un titre à votre note" maxlength="120" required>
           </div>
           <div class="mb-3">
-            <label for="noteContent" class="form-label">Content</label>
-            <textarea class="form-control" id="noteContent" rows="4" placeholder="Write something..." required></textarea>
+            <label for="noteContent" class="form-label">Contenu</label>
+            <textarea class="form-control" id="noteContent" rows="4" placeholder="Écrivez quelque chose..." required></textarea>
           </div>
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary px-3" id="saveBtn">
               <span class="spinner-border spinner-border-sm me-2 d-none" id="saveSpinner" role="status" aria-hidden="true"></span>
-              <span id="saveLabel">Save Note</span>
+              <span id="saveLabel">Enregistrer</span>
             </button>
-            <button type="button" class="btn btn-outline-secondary d-none" id="cancelEditBtn">Cancel</button>
+            <button type="button" class="btn btn-outline-secondary d-none" id="cancelEditBtn">Annuler</button>
           </div>
         </form>
       </div>
@@ -86,7 +86,7 @@
     <div id="notesList">
       <div class="text-center py-5" id="loadingState">
         <div class="spinner-border text-secondary" role="status">
-          <span class="visually-hidden">Loading...</span>
+          <span class="visually-hidden">Chargement...</span>
         </div>
       </div>
     </div>
@@ -96,17 +96,17 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0">
         <div class="modal-header border-0 pb-0">
-          <h5 class="modal-title" id="deleteModalLabel">Delete note</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title" id="deleteModalLabel">Supprimer la note</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
         </div>
         <div class="modal-body">
-          <p class="mb-0">Are you sure you want to delete <strong id="deleteTitle" class="text-break"></strong>? This action cannot be undone.</p>
+          <p class="mb-0">Voulez-vous vraiment supprimer <strong id="deleteTitle" class="text-break"></strong> ? Cette action est irréversible.</p>
         </div>
         <div class="modal-footer border-0 pt-0">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
           <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
             <span class="spinner-border spinner-border-sm me-2 d-none" id="deleteSpinner" role="status" aria-hidden="true"></span>
-            <span id="deleteLabel">Delete</span>
+            <span id="deleteLabel">Supprimer</span>
           </button>
         </div>
       </div>
@@ -151,7 +151,7 @@
         ...options
       });
       if (!response.ok) {
-        let message = 'Something went wrong';
+        let message = 'Une erreur est survenue';
         try {
           const data = await response.json();
           if (data && data.error) message = data.error;
@@ -178,7 +178,7 @@
       close.type = 'button';
       close.className = 'btn-close btn-close-white me-2 m-auto';
       close.setAttribute('data-bs-dismiss', 'toast');
-      close.setAttribute('aria-label', 'Close');
+      close.setAttribute('aria-label', 'Fermer');
       flex.append(body, close);
       el.appendChild(flex);
       el.addEventListener('hidden.bs.toast', () => el.remove());
@@ -190,7 +190,7 @@
       if (!value) return '';
       const date = new Date(value);
       if (Number.isNaN(date.getTime())) return '';
-      return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+      return date.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
     }
 
     function setSaving(busy) {
@@ -204,8 +204,8 @@
       state.editingId = note.id;
       els.title.value = note.title;
       els.content.value = note.content;
-      els.formTitle.textContent = 'Edit note #' + note.id;
-      els.saveLabel.textContent = 'Update Note';
+      els.formTitle.textContent = 'Modifier la note #' + note.id;
+      els.saveLabel.textContent = 'Mettre à jour';
       els.cancelEditBtn.classList.remove('d-none');
       els.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
       els.title.focus({ preventScroll: true });
@@ -213,8 +213,8 @@
 
     function exitEdit() {
       state.editingId = null;
-      els.formTitle.textContent = 'Add a note';
-      els.saveLabel.textContent = 'Save Note';
+      els.formTitle.textContent = 'Ajouter une note';
+      els.saveLabel.textContent = 'Enregistrer';
       els.cancelEditBtn.classList.add('d-none');
     }
 
@@ -244,12 +244,12 @@
       const editBtn = document.createElement('button');
       editBtn.type = 'button';
       editBtn.className = 'btn btn-sm btn-outline-primary';
-      editBtn.textContent = 'Edit';
+      editBtn.textContent = 'Modifier';
       editBtn.addEventListener('click', () => enterEdit(note));
       const deleteBtn = document.createElement('button');
       deleteBtn.type = 'button';
       deleteBtn.className = 'btn btn-sm btn-outline-danger';
-      deleteBtn.textContent = 'Delete';
+      deleteBtn.textContent = 'Supprimer';
       deleteBtn.addEventListener('click', () => askDelete(note));
       actions.append(editBtn, deleteBtn);
 
@@ -268,7 +268,7 @@
       if (!total) {
         const empty = document.createElement('div');
         empty.className = 'text-center text-muted py-5';
-        empty.innerHTML = '<p class="fs-5 mb-1">No notes yet</p><p class="mb-0 small">Add your first note using the form above.</p>';
+        empty.innerHTML = '<p class="fs-5 mb-1">Aucune note pour le moment</p><p class="mb-0 small">Ajoutez votre première note à l\'aide du formulaire ci-dessus.</p>';
         els.notesList.appendChild(empty);
         return;
       }
@@ -305,7 +305,7 @@
       const title = els.title.value.trim();
       const content = els.content.value.trim();
       if (!title || !content) {
-        toast('Title and content are required', 'danger');
+        toast('Le titre et le contenu sont obligatoires', 'danger');
         return;
       }
       setSaving(true);
@@ -315,14 +315,14 @@
             method: 'PUT',
             body: JSON.stringify({ title, content })
           });
-          toast('Note updated');
+          toast('Note mise à jour');
           exitEdit();
         } else {
           await api('/notes', {
             method: 'POST',
             body: JSON.stringify({ title, content })
           });
-          toast('Note added');
+          toast('Note ajoutée');
         }
         els.form.reset();
         await loadNotes();
@@ -350,7 +350,7 @@
         deleteModal.hide();
         if (state.editingId === id) exitEdit();
         state.pendingDeleteId = null;
-        toast('Note deleted');
+        toast('Note supprimée');
         await loadNotes();
       } catch (err) {
         toast(err.message, 'danger');
