@@ -1,23 +1,26 @@
-const { getDb, writeDb } = require('../db/init-db');
+const { query } = require('../db/init-db');
+const { toNoteId } = require('./ids');
 
-function updateNote(id, title, content) {
-  const db = getDb();
-  const note = db.notes.find(n => n.id === parseInt(id, 10));
-  if (!note) return null;
-  note.title = title;
-  note.content = content;
-  note.updated_at = new Date().toISOString();
-  writeDb(db);
-  return note;
+async function updateNote(id, title, content) {
+  const noteId = toNoteId(id);
+  if (noteId === null) return null;
+
+  const { rows } = await query(
+    `UPDATE notes
+     SET title = $1, content = $2, updated_at = CURRENT_TIMESTAMP
+     WHERE id = $3
+     RETURNING id, title, content, created_at, updated_at`,
+    [title, content, noteId]
+  );
+  return rows[0] || null;
 }
 
-function deleteNote(id) {
-  const db = getDb();
-  const remaining = db.notes.filter(n => n.id !== parseInt(id, 10));
-  if (remaining.length === db.notes.length) return false;
-  db.notes = remaining;
-  writeDb(db);
-  return true;
+async function deleteNote(id) {
+  const noteId = toNoteId(id);
+  if (noteId === null) return false;
+
+  const result = await query('DELETE FROM notes WHERE id = $1', [noteId]);
+  return result.rowCount > 0;
 }
 
 module.exports = { updateNote, deleteNote };

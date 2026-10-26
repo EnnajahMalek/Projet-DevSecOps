@@ -1,0 +1,4 @@
+node_modules
+junit.xml
+db/notes.json
+.env
