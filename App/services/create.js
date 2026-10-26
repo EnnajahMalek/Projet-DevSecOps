@@ -1,13 +1,11 @@
-const { getDb, writeDb } = require('../db/init-db');
+const { query } = require('../db/init-db');
 
-function createNote(title, content) {
-  const db = getDb();
-  const id = db.lastId + 1;
-  const note = { id, title, content, created_at: new Date().toISOString() };
-  db.notes.push(note);
-  db.lastId = id;
-  writeDb(db);
-  return note;
+async function createNote(title, content) {
+  const { rows } = await query(
+    'INSERT INTO notes (title, content) VALUES ($1, $2) RETURNING id, title, content, created_at',
+    [title, content]
+  );
+  return rows[0];
 }
 
 module.exports = { createNote };

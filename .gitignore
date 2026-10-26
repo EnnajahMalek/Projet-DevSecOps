@@ -1,6 +1,7 @@
 # See https://github.com/github/gitignore/blob/main/Node.gitignore
 node_modules/
-package-lock.json
 db/notes.json
+junit.xml
 .DS_Store
 .env
+*.txt

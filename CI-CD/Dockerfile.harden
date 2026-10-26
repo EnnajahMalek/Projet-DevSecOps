@@ -1,0 +1,12 @@
+FROM node:24.11.1-slim AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+COPY . .
+
+FROM gcr.io/distroless/nodejs24-debian12:nonroot
+WORKDIR /app
+COPY --from=build --chown=65532:65532 /app /app
+USER 65532:65532
+EXPOSE 3000
+CMD ["index.js"]

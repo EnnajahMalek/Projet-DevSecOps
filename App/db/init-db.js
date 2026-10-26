@@ -1,37 +1,42 @@
-const fs = require('fs');
-const path = require('path');
+const { Pool } = require('pg');
+const config = require('../config');
+const logger = require('../logger');
 
-const dbPath = path.join(__dirname, 'notes.json');
+const pool = new Pool(config.db);
 
-function normalize(db) {
-  const notes = Array.isArray(db.notes) ? db.notes.filter(n => n && typeof n === 'object') : [];
-  const maxId = notes.reduce((max, n) => Math.max(max, Number(n.id) || 0), 0);
-  return { notes, lastId: Math.max(Number(db.lastId) || 0, maxId) };
-}
+pool.on('error', (error) => {
+  logger.error('database_pool_error', error);
+});
 
-function ensureDb() {
-  if (!fs.existsSync(dbPath)) {
-    fs.writeFileSync(dbPath, JSON.stringify({ notes: [], lastId: 0 }, null, 2));
+let schemaReady;
+
+function ensureSchema() {
+  if (!schemaReady) {
+    schemaReady = pool
+      .query(`
+        CREATE TABLE IF NOT EXISTS notes (
+          id SERIAL PRIMARY KEY,
+          title TEXT NOT NULL,
+          content TEXT NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMPTZ
+        )
+      `)
+      .catch((error) => {
+        schemaReady = undefined;
+        throw error;
+      });
   }
+  return schemaReady;
 }
 
-function getDb() {
-  ensureDb();
-  try {
-    return normalize(JSON.parse(fs.readFileSync(dbPath, 'utf8')));
-  } catch (err) {
-    try {
-      fs.copyFileSync(dbPath, `${dbPath}.corrupt`);
-    } catch (copyErr) {}
-    return { notes: [], lastId: 0 };
-  }
+async function query(text, params) {
+  await ensureSchema();
+  return pool.query(text, params);
 }
 
-function writeDb(db) {
-  ensureDb();
-  const tmpPath = `${dbPath}.tmp`;
-  fs.writeFileSync(tmpPath, JSON.stringify(normalize(db), null, 2));
-  fs.renameSync(tmpPath, dbPath);
+async function closePool() {
+  await pool.end();
 }
 
-module.exports = { getDb, writeDb };
+module.exports = { query, closePool };
