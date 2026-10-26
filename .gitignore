@@ -4,3 +4,4 @@ db/notes.json
 junit.xml
 .DS_Store
 .env
+*.txt
