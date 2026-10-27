@@ -22,7 +22,7 @@ pipeline {
                     steps { securiteApplicative 'gitleaks git --redact --verbose .' }
                 }
                 stage('Dockerfiles (Hadolint)') {
-                    steps { securiteApplicative 'hadolint --failure-threshold warning CI-CD/Dockerfile' }
+                    steps { securiteApplicative 'hadolint --failure-threshold warning CI-CD/Dockerfile.harden' }
                 }
             }
         }
