@@ -13,4 +13,4 @@ USER jenkins
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN jenkins-plugin-cli -f /usr/share/jenkins/ref/plugins.txt
 
-COPY jenkins.yaml /usr/share/jenkins/casc/jenkins.yaml
+COPY jenkins.yml /usr/share/jenkins/casc/jenkins.yaml

@@ -3,12 +3,12 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'dev-build'
         PUBLISH_IMAGE = 'publish.build'
-        DOCKER_TAG = "${env.BUILD_NUMBER}"
-        SONAR_TOKEN = credentials('sonar-token-id')
-        NVD_API_KEY = credentials('nvd-api-key')
-        DOCKER_SCOUT_TOKEN = credentials('docker-scout-token')
-        DOCKERHUB_USER = credentials('dockerhub-user')
-        DOCKERHUB_PAT = credentials('dockerhub-token')
+        // DOCKER_TAG = "${env.BUILD_NUMBER}"
+        // SONAR_TOKEN = credentials('sonar-token-id')
+        // NVD_API_KEY = credentials('nvd-api-key')
+        // DOCKER_SCOUT_TOKEN = credentials('docker-scout-token')
+        // DOCKERHUB_USER = credentials('dockerhub-user')
+        // DOCKERHUB_PAT = credentials('dockerhub-token')
     }
     options {
         timestamps()
