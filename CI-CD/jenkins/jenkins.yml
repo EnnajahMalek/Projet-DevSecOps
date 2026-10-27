@@ -28,26 +28,31 @@ credentials:
 unclassified:                       
   globalLibraries:                  
     libraries:
-      - name: devsecops-lib        # the name used in the Jenkinsfile: @Library('devsecops-lib')
+      - name: devsecops-jenkins-biblio-library       
         defaultVersion: main        
         retriever:                  
           modernSCM:
             scm:
               github:               
                 repoOwner: ${GITHUB_USER}            
-                repository: devsecops-platform
+                repository: ${REPOSITORY}
                 credentialsId: github-pat     
 
 
 jobs:                              
   - script: >                       
-      multibranchPipelineJob('devsecops-platform') {   
+      multibranchPipelineJob('${REPOSITORY}') {   
         branchSources {                                
           github {                                      
             id('platform')                              
             scanCredentialsId('github-pat')            
-            repoOwner('<you>')                         
-            repository('devsecops-platform')            
+            repoOwner('${GITHUB_USER}')                         
+            repository('${REPOSITORY}')            
           }
         }
+      }
+      factory {
+          workflowBranchProjectFactory {
+              scriptPath('CI-CD/JenkinsFile')
+          }
       }

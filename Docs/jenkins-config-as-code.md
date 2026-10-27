@@ -38,4 +38,24 @@ jenkins:
 
 ce semgment est pour la configuration du login
 
-pour le pipeline, au lieu d'executer le code sur le conteneur docker, on utilise un autre conteneur ou on installe les packages necessaire
+pour le pipeline, au lieu d'executer le code sur le conteneur du jenkins, on utilise un autre conteneur ou on installe les packages necessaire
+
+on fait un teste unitaire avec gtleaks et hadolint et on trouve 
+``` docker run --rm -v "$PWD":/work -w /work ci-tools:local \
+  hadolint --failure-threshold warning CI-CD/Dockerfile.harden; echo "exit code: $?"
+exit code: 0
+```
+et gitleaks 
+```
+docker run --rm -v "$PWD":/work -w /work ci-tools:local gitleaks git --redact --verbose .
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+9:28PM INF 10 commits scanned.
+9:28PM INF scanned ~92979 bytes (92.98 KB) in 381ms
+9:28PM INF no leaks found
+```
