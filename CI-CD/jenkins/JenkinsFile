@@ -15,14 +15,37 @@ pipeline {
                 sh 'docker build -t $TOOLBOX -f CI-CD/jenkins/outils/Dockerfile.secgate CI-CD/jenkins/outils/'
             }
         }
-
-        stage('Source checks') {
+        
+        stage('check des sources') {
             parallel {
-                stage('Secrets (Gitleaks)') {
+                stage('Secrets avec Gitleaks') {
                     steps { securiteApplicative 'gitleaks git --redact --verbose .' }
                 }
-                stage('Dockerfiles (Hadolint)') {
-                    steps { securiteApplicative 'hadolint --failure-threshold warning CI-CD/Dockerfile.harden' }
+                stage('Dockerfile avec Hadolint') {
+                    steps { securiteApplicative 'hadolint  CI-CD/Dockerfile.harden' }
+                }
+            }
+        }
+        stage('build image'){
+            steps{
+                sh '''
+                    mkdir -p images 
+                    docker build -t devsecops/app:$GIT_COMMIT -f CI-CD/Dockerfile.harden App
+                    docker save -o images/app.tar devsecops/app:$GIT_COMMIT
+                '''
+            }
+        }
+        stage('image check'){
+            parallel{
+                stage('check avec syft'){
+                    steps{
+                        securiteApplicative "syft scan docker-archive:images/app.tar"
+                    }
+                }
+                stage('check avec trivy'){
+                    steps{
+                        securiteApplicative "trivy image --input images/app.tar --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1"
+                    }
                 }
             }
         }
