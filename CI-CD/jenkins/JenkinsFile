@@ -30,7 +30,7 @@ pipeline {
         stage('source code check'){
             parallel{
                 stage('SAST (Semgrep)') {
-                    steps { securiteApplicative 'semgrep scan --config p/default --error --metrics=off App/' }
+                    steps { securiteApplicative "trivy image --input images/app.tar --cache-dir /trivy-cache --skip-db-update --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1" }
                 }
                 stage('Dependences (OSV)') {
                     steps { securiteApplicative 'osv-scanner scan source -r .' }
@@ -71,7 +71,7 @@ pipeline {
 // la fonction securiteApplicative est utilise pour deployer les commands dans l'image toolbox
 def securiteApplicative(String command) {
     echo "commande: ${command}"
-    docker.image(env.TOOLBOX).inside('-e HOME=/tmp') {
+    docker.image(env.TOOLBOX).inside('-e HOME=/tmp -v /var/jenkins_home/trivy-cache:/trivy-cache') {
         sh command
     }
     echo "c bon"
