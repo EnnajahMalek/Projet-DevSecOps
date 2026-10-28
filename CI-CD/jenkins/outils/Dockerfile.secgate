@@ -5,7 +5,10 @@ ARG TRIVY_VERSION=0.76.1
 ARG SYFT_VERSION=1.55.0 
 ARG HADOLINT_VERSION=2.15.1
 ARG DOCKLE_VERSION=0.4.15
- 
+ARG OSV_VERSION=2.7.0
+ARG COSIGN_VERSION=3.1.4
+ARG SEMGREP_VERSION=1.182.1
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates curl git python3 python3-venv \
     && rm -rf /var/lib/apt/lists/* \
@@ -49,3 +52,22 @@ RUN curl -sSfLO https://github.com/goodwithtech/dockle/releases/download/v${DOCK
  && sha256sum --ignore-missing -c dockle_${DOCKLE_VERSION}_checksums.txt \
  && tar -xzf dockle_${DOCKLE_VERSION}_Linux-64bit.tar.gz -C /usr/local/bin dockle \
  && rm -f /tmp/dl/*
+
+# 6. OSV-Scanner
+RUN curl -sSfLO https://github.com/google/osv-scanner/releases/download/v${OSV_VERSION}/osv-scanner_linux_amd64 \
+ && curl -sSfLO https://github.com/google/osv-scanner/releases/download/v${OSV_VERSION}/osv-scanner_SHA256SUMS \
+ && sha256sum --ignore-missing -c osv-scanner_SHA256SUMS \
+ && install -m 0755 osv-scanner_linux_amd64 /usr/local/bin/osv-scanner \
+ && rm -f /tmp/dl/*
+
+# 7. Cosign
+RUN curl -sSfLO https://github.com/sigstore/cosign/releases/download/v${COSIGN_VERSION}/cosign-linux-amd64 \
+ && curl -sSfLO https://github.com/sigstore/cosign/releases/download/v${COSIGN_VERSION}/cosign_checksums.txt \
+ && sha256sum --ignore-missing -c cosign_checksums.txt \
+ && install -m 0755 cosign-linux-amd64 /usr/local/bin/cosign \
+ && rm -f /tmp/dl/*
+
+# 8. Semgrep (Python, in a virtual environment)
+RUN python3 -m venv /opt/semgrep \
+ && /opt/semgrep/bin/pip install --no-cache-dir semgrep==${SEMGREP_VERSION} \
+ && ln -s /opt/semgrep/bin/semgrep /usr/local/bin/semgrep

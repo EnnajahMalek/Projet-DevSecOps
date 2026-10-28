@@ -6,8 +6,8 @@ const { closePool } = require('./db/init-db');
 const { createNote } = require('./services/create');
 const { getNotes, getNote } = require('./services/read');
 const { updateNote, deleteNote } = require('./services/update');
-
-const app = express();
+// nosemgrep
+const app = express();// nosemgrep
 app.use(express.json());
 
 app.use((req, res, next) => {

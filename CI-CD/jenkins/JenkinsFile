@@ -24,6 +24,17 @@ pipeline {
                 stage('Dockerfile avec Hadolint') {
                     steps { securiteApplicative 'hadolint  CI-CD/Dockerfile.harden' }
                 }
+                
+            }
+        }
+        stage('source code check'){
+            parallel{
+                stage('SAST (Semgrep)') {
+                    steps { securityGate 'semgrep scan --config p/default --error --metrics=off App/' }
+                }
+                stage('Dependencies (OSV)') {
+                    steps { securityGate 'osv-scanner scan source -r .' }
+                }
             }
         }
         stage('build image'){
