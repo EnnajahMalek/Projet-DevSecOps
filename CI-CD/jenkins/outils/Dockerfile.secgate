@@ -26,6 +26,8 @@ RUN curl -sSfLO https://github.com/aquasecurity/trivy/releases/download/v${TRIVY
  && sha256sum --ignore-missing -c trivy_${TRIVY_VERSION}_checksums.txt \
  && tar -xzf trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz -C /usr/local/bin trivy \
  && rm -f /tmp/dl/*
+RUN apt-get --only-upgrade install trivy
+
 
 # 3. Syft
 RUN curl -sSfLO https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_linux_amd64.tar.gz \
