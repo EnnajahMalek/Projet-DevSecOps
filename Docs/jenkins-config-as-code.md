@@ -60,4 +60,4 @@ docker run --rm -v "$PWD":/work -w /work ci-tools:local gitleaks git --redact --
 9:28PM INF no leaks found
 ```
 pour tivy il faut modifier le fonction helper
-on continue
+on continue, note bien que en 30 octobre , le pipeline a signaler une autre panne de securite du package "minimatch" avec la version 10.2.6, donc une mise a jour ver 11.0.1
