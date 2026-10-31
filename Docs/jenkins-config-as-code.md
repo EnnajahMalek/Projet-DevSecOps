@@ -240,3 +240,4 @@ Report Summary
 └───────────────────────────────────────────────────────┴──────────┴─────────────────┴─────────┘
 ```
 voici la resultat 
+<img width="1303" height="217" alt="image" src="https://github.com/user-attachments/assets/5ce627f8-c60f-46df-8ee1-690c986343e9" />
