@@ -34,6 +34,14 @@ credentials:
               scope: GLOBAL
               id: dockerhub-repo
               secret: ${DOCKERHUB_REPO}
+          - file:
+              scope: GLOBAL
+              id: cosign-cle
+              fileName: cosign.key
+              secretBytes: ${COSIGN_KEY_B64}
+          - string:
+              scope: GLOBAL
+              id: cosign-
 unclassified:                       
   globalLibraries:                  
     libraries:

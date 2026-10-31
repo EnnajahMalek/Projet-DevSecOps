@@ -82,6 +82,31 @@ pipeline {
                 }
             }
         }
+        stage('signature d\'image publie') {
+            steps {
+                withCredentials([
+                    usernamePassword(credentialsId: 'dockerhub-pat',
+                                    usernameVariable: 'REG_USER',
+                                    passwordVariable: 'REG_TOKEN'),
+                    file(credentialsId: 'cosign-cle', variable: 'COSIGN_KEYFILE'),
+                    string(credentialsId: 'cosign-password', variable: 'COSIGN_PASSWORD')
+                ]) {
+                    sh '''
+                        REF=$(cat reports/app.digest)
+                        docker run --rm -e HOME=/tmp -e COSIGN_PASSWORD -e REG_USER -e REG_TOKEN -e REF \
+                        -v "$COSIGN_KEYFILE":/cosign.key:ro $TOOLBOX \
+                        sh -c 'echo "$REG_TOKEN" | cosign login docker.io -u "$REG_USER" --password-stdin \
+                                && cosign sign --key /cosign.key --yes "$REF"'
+                    '''
+                }
+            }
+        }
+
+        stage('verification d\'image') {
+            steps {
+                securiteApplicative 'cosign verify --key CI-CD/cosign.pub $(cat reports/app.digest)'
+            }
+        }
     }
 
     post {
@@ -89,7 +114,7 @@ pipeline {
     }
 }
 
-// securiteApplicative: runs a command dans le toolbox image, elle es dans outils/Dockerfile.secgate
+// securiteApplicative: execution commande dans le toolbox image, elle es dans outils/Dockerfile.secgate
 def securiteApplicative(String command) {
     echo "commande: ${command}"
     docker.image(env.TOOLBOX).inside('-e HOME=/tmp -v /var/jenkins_home/trivy-cache:/trivy-cache') {
