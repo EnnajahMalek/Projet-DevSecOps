@@ -41,7 +41,8 @@ credentials:
               secretBytes: ${COSIGN_KEY_B64}
           - string:
               scope: GLOBAL
-              id: cosign-
+              id: cosign-mdp
+              secret: ${COSIGN_MDP}
 unclassified:                       
   globalLibraries:                  
     libraries:
