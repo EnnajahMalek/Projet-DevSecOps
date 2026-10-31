@@ -25,6 +25,11 @@ credentials:
               id: github-pat        
               username: ${GITHUB_USER}    
               password: ${GITHUB_PAT}     
+          - usernamePassword:
+              scope: GLOBAL
+              id: dockerhub-pat
+              username: ${DOCKERHUB_USER}
+              password: ${DOCKERHUB_TOKEN}
 unclassified:                       
   globalLibraries:                  
     libraries:
