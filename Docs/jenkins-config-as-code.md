@@ -240,3 +240,7 @@ Report Summary
 └───────────────────────────────────────────────────────┴──────────┴─────────────────┴─────────┘
 ```
 voici la resultat  
+image github 
+<img width="1303" height="217" alt="image" src="https://github.com/user-attachments/assets/5ce627f8-c60f-46df-8ee1-690c986343e9" />
+pour la refresh pour l'ajout de crednetials du dockerhub puisque le pipeline pass
+docker compose -f CI-CD/jenkins/composition-image.yml up -d --build
