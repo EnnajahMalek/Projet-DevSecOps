@@ -84,7 +84,7 @@ pipeline {
             }
         }
 
-        stage('sign and verify') {
+        stage('signature et verification') {
             steps {
                 withCredentials([
                     usernamePassword(credentialsId: 'dockerhub-pat',
@@ -93,16 +93,12 @@ pipeline {
                     file(credentialsId: 'cosign-cle', variable: 'COSIGN_KEYFILE'),
                     string(credentialsId: 'cosign-mdp', variable: 'COSIGN_PASSWORD')
                 ]) {
-                    sh '''
+                    securiteApplicative '''
                         REF=$(cat reports/app.digest)
-                        docker run --rm -e HOME=/tmp -e COSIGN_PASSWORD -e REG_USER -e REG_TOKEN -e REF \
-                        -v "$COSIGN_KEYFILE":/cosign.key:ro \
-                        -v "$WORKSPACE/CI-CD/cosign.pub":/cosign.pub:ro \
-                        $TOOLBOX sh -ec '
-                            echo "$REG_TOKEN" | cosign login docker.io -u "$REG_USER" --password-stdin
-                            cosign sign --key /cosign.key --yes "$REF"
-                            cosign verify --key /cosign.pub "$REF"
-                        '
+                        echo "$REG_TOKEN" | cosign login docker.io -u "$REG_USER" --password-stdin
+                        cosign sign --key "$COSIGN_KEYFILE" --yes --new-bundle-format=false --use-signing-config=false "$REF"
+                        cosign tree "$REF"
+                        cosign verify --key CI-CD/cosign.pub "$REF"
                     '''
                 }
             }
