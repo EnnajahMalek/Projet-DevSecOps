@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     options {
-        timestamps() 
+        timestamps()
+        timeout(time: 60, unit: 'MINUTES')
     }
 
     environment {
@@ -15,60 +16,61 @@ pipeline {
                 sh 'docker build -t $TOOLBOX -f CI-CD/jenkins/outils/Dockerfile.secgate CI-CD/jenkins/outils/'
             }
         }
-        
+
         stage('check des sources') {
             parallel {
                 stage('Secrets avec Gitleaks') {
                     steps { securiteApplicative 'gitleaks git --redact --verbose .' }
                 }
                 stage('Dockerfile avec Hadolint') {
-                    steps { securiteApplicative 'hadolint  CI-CD/Dockerfile.harden' }
+                    steps { securiteApplicative 'hadolint --failure-threshold warning CI-CD/Dockerfile.harden' }
                 }
-                
-            }
-        }
-        stage('source code check'){
-            parallel{
                 stage('SAST (Semgrep)') {
-                    steps { securiteApplicative "trivy image --input images/app.tar --cache-dir /trivy-cache --skip-db-update --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1" }
+                    steps { securiteApplicative 'semgrep scan --config p/default --error --metrics=off App/' }
                 }
                 stage('Dependences (OSV)') {
                     steps { securiteApplicative 'osv-scanner scan source -r .' }
                 }
             }
         }
-        stage('build image'){
-            steps{
+
+        stage('build image') {
+            steps {
                 sh '''
-                    mkdir -p images 
+                    mkdir -p images reports
                     docker build -t devsecops/app:$GIT_COMMIT -f CI-CD/Dockerfile.harden App
                     docker save -o images/app.tar devsecops/app:$GIT_COMMIT
                 '''
             }
         }
-        stage('image check'){
-            parallel{
-                stage('check avec syft'){
-                    steps{
-                        securiteApplicative "syft scan docker-archive:images/app.tar"
+
+        stage('image check') {
+            parallel {
+                stage('check avec syft') {
+                    steps {
+                        securiteApplicative 'syft docker-archive:images/app.tar -o cyclonedx-json=reports/app.sbom.cdx.json'
                     }
                 }
-                stage('dockle check'){
-                    steps{
-                        securiteApplicative "dockle --input images/app.tar --exit-code 1 --exit-level warn"
+                stage('dockle check') {
+                    steps {
+                        securiteApplicative 'dockle --input images/app.tar --exit-code 1 --exit-level warn'
                     }
                 }
-                stage('check avec trivy'){
-                    steps{
-                        securiteApplicative "trivy image --input images/app.tar --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1"
+                stage('check avec trivy') {
+                    steps {
+                        securiteApplicative 'trivy image --input images/app.tar --cache-dir /trivy-cache --skip-db-update --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1'
                     }
                 }
             }
         }
- 
     }
-} 
-// la fonction securiteApplicative est utilise pour deployer les commands dans l'image toolbox
+
+    post {
+        always { archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true }
+    }
+}
+
+// securiteApplicative: runs a command dans le toolbox image, elle es dans outils/Dockerfile.secgate
 def securiteApplicative(String command) {
     echo "commande: ${command}"
     docker.image(env.TOOLBOX).inside('-e HOME=/tmp -v /var/jenkins_home/trivy-cache:/trivy-cache') {

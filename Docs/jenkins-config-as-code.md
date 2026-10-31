@@ -61,3 +61,4 @@ docker run --rm -v "$PWD":/work -w /work ci-tools:local gitleaks git --redact --
 ```
 pour tivy il faut modifier le fonction helper
 on continue, note bien que en 30 octobre , le pipeline a signaler une autre panne de securite du package "minimatch" avec la version 10.2.6, donc une mise a jour ver 11.0.1
+dans le helper function nous avons ajouter le cache d;installation de trivy pour ameliorer la vitesse 
