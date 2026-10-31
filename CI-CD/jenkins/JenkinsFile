@@ -26,7 +26,7 @@ pipeline {
                     steps { securiteApplicative 'hadolint --failure-threshold warning CI-CD/Dockerfile.harden' }
                 }
                 stage('SAST (Semgrep)') {
-                    steps { securiteApplicative 'semgrep scan --config p/default --error --metrics=off App/' }
+                    steps { securiteApplicative 'semgrep scan --config p/default --error  App/' }
                 }
                 stage('Dependences (OSV)') {
                     steps { securiteApplicative 'osv-scanner scan source -r .' }
