@@ -71,18 +71,20 @@ pipeline {
                                     passwordVariable: 'REG_TOKEN'),
                     string(credentialsId: 'dockerhub-repo', variable: 'DOCKERHUB_REPO')
                 ]) {
-                    sh '''
+                    sh ''' 
                         IMAGE=$REG_USER/$DOCKERHUB_REPO
                         docker tag devsecops/app:$GIT_COMMIT $IMAGE:$GIT_COMMIT
-                        echo $REG_TOKEN | docker login -u $REG_USER --password-stdin
-                        docker push $IMAGE:$GIT_COMMIT
-                        docker inspect --format '{{index .RepoDigests 0}}' $IMAGE:$GIT_COMMIT > reports/app.digest
+                        echo "$REG_TOKEN" | docker login -u "$REG_USER" --password-stdin
+                        docker push $IMAGE:$GIT_COMMIT | tee reports/push.log
                         docker logout
+                        DIGEST=$(awk '/digest: sha256:/ {print $3}' reports/push.log)
+                        echo "$IMAGE@$DIGEST" > reports/app.digest
                     '''
                 }
             }
         }
-        stage('signature d\'image publie') {
+
+        stage('sign and verify') {
             steps {
                 withCredentials([
                     usernamePassword(credentialsId: 'dockerhub-pat',
@@ -94,17 +96,15 @@ pipeline {
                     sh '''
                         REF=$(cat reports/app.digest)
                         docker run --rm -e HOME=/tmp -e COSIGN_PASSWORD -e REG_USER -e REG_TOKEN -e REF \
-                        -v "$COSIGN_KEYFILE":/cosign.key:ro $TOOLBOX \
-                        sh -c 'echo "$REG_TOKEN" | cosign login docker.io -u "$REG_USER" --password-stdin \
-                                && cosign sign --key /cosign.key --yes "$REF"'
+                        -v "$COSIGN_KEYFILE":/cosign.key:ro \
+                        -v "$WORKSPACE/CI-CD/cosign.pub":/cosign.pub:ro \
+                        $TOOLBOX sh -ec '
+                            echo "$REG_TOKEN" | cosign login docker.io -u "$REG_USER" --password-stdin
+                            cosign sign --key /cosign.key --yes "$REF"
+                            cosign verify --key /cosign.pub "$REF"
+                        '
                     '''
                 }
-            }
-        }
-
-        stage('verification d\'image') {
-            steps {
-                securiteApplicative 'cosign verify --key CI-CD/cosign.pub $(cat reports/app.digest)'
             }
         }
     }
