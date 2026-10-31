@@ -63,6 +63,25 @@ pipeline {
                 }
             }
         }
+        stage('publish') {
+            steps {
+                withCredentials([
+                    usernamePassword(credentialsId: 'dockerhub-pat',
+                                    usernameVariable: 'REG_USER',
+                                    passwordVariable: 'REG_TOKEN'),
+                    string(credentialsId: 'dockerhub-repo', variable: 'DOCKERHUB_REPO')
+                ]) {
+                    sh '''
+                        IMAGE=$REG_USER/$DOCKERHUB_REPO
+                        docker tag devsecops/app:$GIT_COMMIT $IMAGE:$GIT_COMMIT
+                        echo $REG_TOKEN | docker login -u $REG_USER --password-stdin
+                        docker push $IMAGE:$GIT_COMMIT
+                        docker inspect --format '{{index .RepoDigests 0}}' $IMAGE:$GIT_COMMIT > reports/app.digest
+                        docker logout
+                    '''
+                }
+            }
+        }
     }
 
     post {

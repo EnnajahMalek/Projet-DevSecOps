@@ -30,6 +30,10 @@ credentials:
               id: dockerhub-pat
               username: ${DOCKERHUB_USER}
               password: ${DOCKERHUB_TOKEN}
+          - string:
+              scope: globalLibraries
+              id: dockerhub-repo
+              secret: ${DOCKERHUB_REPO}
 unclassified:                       
   globalLibraries:                  
     libraries:
