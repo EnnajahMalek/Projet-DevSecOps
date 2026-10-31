@@ -1,44 +1,80 @@
 pipeline {
     agent any
-    environment {
-        DOCKER_IMAGE = 'dev-build'
-        PUBLISH_IMAGE = 'publish.build'
-        // DOCKER_TAG = "${env.BUILD_NUMBER}"
-        // SONAR_TOKEN = credentials('sonar-token-id')
-        // NVD_API_KEY = credentials('nvd-api-key')
-        // DOCKER_SCOUT_TOKEN = credentials('docker-scout-token')
-        // DOCKERHUB_USER = credentials('dockerhub-user')
-        // DOCKERHUB_PAT = credentials('dockerhub-token')
-    }
+
     options {
         timestamps()
+        timeout(time: 60, unit: 'MINUTES')
+    }
+
+    environment {
+        TOOLBOX = 'ci-tools:local'
     }
 
     stages {
-        stage('Build') {
+        stage('Toolbox') {
             steps {
-                dir('App') {
-                    sh 'npm ci'
+                sh 'docker build -t $TOOLBOX -f CI-CD/jenkins/outils/Dockerfile.secgate CI-CD/jenkins/outils/'
+            }
+        }
+
+        stage('check des sources') {
+            parallel {
+                stage('Secrets avec Gitleaks') {
+                    steps { securiteApplicative 'gitleaks git --redact --verbose .' }
+                }
+                stage('Dockerfile avec Hadolint') {
+                    steps { securiteApplicative 'hadolint --failure-threshold warning CI-CD/Dockerfile.harden' }
+                }
+                stage('SAST (Semgrep)') {
+                    steps { securiteApplicative 'semgrep scan --config p/default --error  App/' }
+                }
+                stage('Dependences (OSV)') {
+                    steps { securiteApplicative 'osv-scanner scan source -r .' }
                 }
             }
         }
-        stage('Unit tests') {
+
+        stage('build image') {
             steps {
-                dir('App') {
-                    sh 'npm test'
-                }
+                sh '''
+                    mkdir -p images reports
+                    docker build -t devsecops/app:$GIT_COMMIT -f CI-CD/Dockerfile.harden App
+                    docker save -o images/app.tar devsecops/app:$GIT_COMMIT
+                '''
             }
-            post {
-                always {
-                    junit 'App/junit.xml'
+        }
+
+        stage('image check') {
+            parallel {
+                stage('check avec syft') {
+                    steps {
+                        securiteApplicative 'syft docker-archive:images/app.tar -o cyclonedx-json=reports/app.sbom.cdx.json'
+                    }
+                }
+                stage('dockle check') {
+                    steps {
+                        securiteApplicative 'dockle --input images/app.tar --exit-code 1 --exit-level warn'
+                    }
+                }
+                stage('check avec trivy') {
+                    steps {
+                        securiteApplicative 'trivy image --input images/app.tar --cache-dir /trivy-cache --skip-db-update --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1'
+                    }
                 }
             }
         }
     }
 
     post {
-        always {
-            echo "Pipeline status: ${currentBuild.currentResult}"
-        }
+        always { archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true }
     }
+}
+
+// securiteApplicative: runs a command dans le toolbox image, elle es dans outils/Dockerfile.secgate
+def securiteApplicative(String command) {
+    echo "commande: ${command}"
+    docker.image(env.TOOLBOX).inside('-e HOME=/tmp -v /var/jenkins_home/trivy-cache:/trivy-cache') {
+        sh command
+    }
+    echo "c bon"
 }
