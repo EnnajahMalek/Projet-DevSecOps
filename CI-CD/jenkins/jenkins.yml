@@ -31,7 +31,7 @@ credentials:
               username: ${DOCKERHUB_USER}
               password: ${DOCKERHUB_TOKEN}
           - string:
-              scope: globalLibraries
+              scope: GLOBAL
               id: dockerhub-repo
               secret: ${DOCKERHUB_REPO}
 unclassified:                       
