@@ -89,7 +89,7 @@ pipeline {
                                     usernameVariable: 'REG_USER',
                                     passwordVariable: 'REG_TOKEN'),
                     file(credentialsId: 'cosign-cle', variable: 'COSIGN_KEYFILE'),
-                    string(credentialsId: 'cosign-password', variable: 'COSIGN_PASSWORD')
+                    string(credentialsId: 'cosign-mdp', variable: 'COSIGN_PASSWORD')
                 ]) {
                     sh '''
                         REF=$(cat reports/app.digest)
