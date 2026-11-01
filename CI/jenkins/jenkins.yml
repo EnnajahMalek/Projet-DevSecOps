@@ -71,6 +71,6 @@ jobs:
       }
       factory {
           workflowBranchProjectFactory {
-              scriptPath('CI/JenkinsFile')
+              scriptPath('CI-CD/JenkinsFile')
           }
       }

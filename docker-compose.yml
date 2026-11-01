@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: ./App
-      dockerfile: ../CI/Dockerfile
+      dockerfile: ../CI-CD/Dockerfile
     environment:
       PORT: ${APP_PORT:-3000}
       PGHOST: db
