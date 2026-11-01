@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Toolbox') {
             steps {
-                sh 'docker build -t $TOOLBOX -f CI-CD/jenkins/outils/Dockerfile.secgate CI-CD/jenkins/outils/'
+                sh 'docker build -t $TOOLBOX -f CI/jenkins/outils/Dockerfile.secgate CI/jenkins/outils/'
             }
         }
 
@@ -23,7 +23,7 @@ pipeline {
                     steps { securiteApplicative 'gitleaks git --redact --verbose .' }
                 }
                 stage('Dockerfile avec Hadolint') {
-                    steps { securiteApplicative 'hadolint --failure-threshold warning CI-CD/Dockerfile.harden' }
+                    steps { securiteApplicative 'hadolint --failure-threshold warning CI/Dockerfile.harden' }
                 }
                 stage('SAST (Semgrep)') {
                     steps { securiteApplicative 'semgrep scan --config p/default --error  App/' }
@@ -38,7 +38,7 @@ pipeline {
             steps {
                 sh '''
                     mkdir -p images reports
-                    docker build -t devsecops/app:$GIT_COMMIT -f CI-CD/Dockerfile.harden App
+                    docker build -t devsecops/app:$GIT_COMMIT -f CI/Dockerfile.harden App
                     docker save -o images/app.tar devsecops/app:$GIT_COMMIT
                 '''
             }
@@ -64,6 +64,7 @@ pipeline {
             }
         }
         stage('publish') {
+            when { branch 'main' }
             steps {
                 withCredentials([
                     usernamePassword(credentialsId: 'dockerhub-pat',
@@ -71,13 +72,35 @@ pipeline {
                                     passwordVariable: 'REG_TOKEN'),
                     string(credentialsId: 'dockerhub-repo', variable: 'DOCKERHUB_REPO')
                 ]) {
-                    sh '''
+                    sh ''' 
                         IMAGE=$REG_USER/$DOCKERHUB_REPO
                         docker tag devsecops/app:$GIT_COMMIT $IMAGE:$GIT_COMMIT
-                        echo $REG_TOKEN | docker login -u $REG_USER --password-stdin
-                        docker push $IMAGE:$GIT_COMMIT
-                        docker inspect --format '{{index .RepoDigests 0}}' $IMAGE:$GIT_COMMIT > reports/app.digest
+                        echo "$REG_TOKEN" | docker login -u "$REG_USER" --password-stdin
+                        docker push $IMAGE:$GIT_COMMIT | tee reports/push.log
                         docker logout
+                        DIGEST=$(awk '/digest: sha256:/ {print $3}' reports/push.log)
+                        echo "$IMAGE@$DIGEST" > reports/app.digest
+                    '''
+                }
+            }
+        }
+
+        stage('signature et verification') {
+            when { branch 'main' }
+            steps {
+                withCredentials([
+                    usernamePassword(credentialsId: 'dockerhub-pat',
+                                    usernameVariable: 'REG_USER',
+                                    passwordVariable: 'REG_TOKEN'),
+                    file(credentialsId: 'cosign-cle', variable: 'COSIGN_KEYFILE'),
+                    string(credentialsId: 'cosign-mdp', variable: 'COSIGN_PASSWORD')
+                ]) {
+                    securiteApplicative '''
+                        REF=$(cat reports/app.digest)
+                        echo "$REG_TOKEN" | cosign login docker.io -u "$REG_USER" --password-stdin
+                        cosign sign --key "$COSIGN_KEYFILE" --yes --new-bundle-format=false --use-signing-config=false "$REF"
+                        cosign tree "$REF"
+                        cosign verify --key CI/cosign.pub "$REF"
                     '''
                 }
             }
@@ -89,7 +112,7 @@ pipeline {
     }
 }
 
-// securiteApplicative: runs a command dans le toolbox image, elle es dans outils/Dockerfile.secgate
+// securiteApplicative: execution commande dans le toolbox image, elle es dans outils/Dockerfile.secgate
 def securiteApplicative(String command) {
     echo "commande: ${command}"
     docker.image(env.TOOLBOX).inside('-e HOME=/tmp -v /var/jenkins_home/trivy-cache:/trivy-cache') {

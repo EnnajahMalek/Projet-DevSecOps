@@ -31,9 +31,18 @@ credentials:
               username: ${DOCKERHUB_USER}
               password: ${DOCKERHUB_TOKEN}
           - string:
-              scope: globalLibraries
+              scope: GLOBAL
               id: dockerhub-repo
               secret: ${DOCKERHUB_REPO}
+          - file:
+              scope: GLOBAL
+              id: cosign-cle
+              fileName: cosign.key
+              secretBytes: ${COSIGN_KEY_B64}
+          - string:
+              scope: GLOBAL
+              id: cosign-mdp
+              secret: ${COSIGN_MDP}
 unclassified:                       
   globalLibraries:                  
     libraries:
@@ -62,6 +71,6 @@ jobs:
       }
       factory {
           workflowBranchProjectFactory {
-              scriptPath('CI-CD/JenkinsFile')
+              scriptPath('CI/JenkinsFile')
           }
       }

@@ -17,7 +17,7 @@ il a access  seulement une reseaux prive ```jenkins```
 pour le 2eme service 
 nous avons pour la construction, il utilise le Dockerfile dans le dossier 
 un seul port est accessible 8080
-les secrets sont dans le fichier ```CI-CD/jenkins/.env``` il contient le user, le token du repo github et le mote de pass jenkins , le service a access au meme reseau jenkins
+les secrets sont dans le fichier ```CI/jenkins/.env``` il contient le user, le token du repo github et le mote de pass jenkins , le service a access au meme reseau jenkins
 
 
 pour le 3eme fichier jenkins.yml version 1 : 
@@ -42,7 +42,7 @@ pour le pipeline, au lieu d'executer le code sur le conteneur du jenkins, on uti
 
 on fait un teste unitaire avec gtleaks et hadolint et on trouve 
 ``` docker run --rm -v "$PWD":/work -w /work ci-tools:local \
-  hadolint --failure-threshold warning CI-CD/Dockerfile.harden; echo "exit code: $?"
+  hadolint --failure-threshold warning CI/Dockerfile.harden; echo "exit code: $?"
 exit code: 0
 ```
 et gitleaks 
@@ -243,4 +243,4 @@ voici la resultat
 image github 
 <img width="1303" height="217" alt="image" src="https://github.com/user-attachments/assets/5ce627f8-c60f-46df-8ee1-690c986343e9" />
 pour la refresh pour l'ajout de crednetials du dockerhub puisque le pipeline pass
-docker compose -f CI-CD/jenkins/composition-image.yml up -d --build
+docker compose -f CI/jenkins/composition-image.yml up -d --build
