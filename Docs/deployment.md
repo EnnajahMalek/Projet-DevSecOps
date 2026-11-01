@@ -1,0 +1,1 @@
+pour la 2eme partie , deployement sur kubernetes local (en utilisan kubernetes in docker ``` kind ``` , ``` helm ``` et ``` kubectl ``` )
