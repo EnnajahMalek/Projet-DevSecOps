@@ -79,10 +79,10 @@ RUN python3 -m venv /opt/semgrep \
 
 # 9. kube-linter
 RUN curl -sSfLO https://github.com/stackrox/kube-linter/releases/download/v${KUBE_LINTER_VERSION}/kube-linter-linux.tar.gz \
- && echo "<sha256>  kube-linter-linux.tar.gz" | sha256sum -c - \
+ && echo "1a6d8419b11971372971fdbc22682b684ebfb7cf1c39591662d1b6ca736c41df  kube-linter-linux.tar.gz" | sha256sum -c - \
  && tar -xzf kube-linter-linux.tar.gz -C /usr/local/bin kube-linter \
  && rm -f /tmp/dl/*
-
+ 
 # 10. kubeconform
 RUN curl -sSfLO https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz \
  && curl -sSfLO https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/CHECKSUMS \
