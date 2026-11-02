@@ -76,3 +76,7 @@ kubectl -n notes create secret docker-registry dockerhub-pull \
   --docker-password=<docker_token>
 ```
 pour le pod ``` app.yml ``` il utilise l'image deploye par le pipeline CI , mais le pipeline CI deplooie sur dockerhub donc on est besoin des credentials 
+
+``` kustomization.yml ``` est le fichier pour modifier par exemple le nom de l'image au lieu de le remplacer directemenet dans les manifests des pods
+
+on utilise un linter avec 
