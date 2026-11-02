@@ -79,4 +79,15 @@ pour le pod ``` app.yml ``` il utilise l'image deploye par le pipeline CI , mais
 
 ``` kustomization.yml ``` est le fichier pour modifier par exemple le nom de l'image au lieu de le remplacer directemenet dans les manifests des pods
 
-on utilise un linter avec 
+on utilise un linter avec kube-linter 
+et on trouve KubeLinter 0.8.3
+
+<standard input>: (object: notes/app apps/v1, Kind=Deployment) container "app" does not have a read-only root file system (check: no-read-only-root-fs, remediation: Set readOnlyRootFilesystem to true in the container securityContext.)
+
+<standard input>: (object: notes/app apps/v1, Kind=Deployment) container "app" has cpu request 0 (check: unset-cpu-requirements, remediation: Set CPU requests for your container based on its requirements. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits for details.)
+
+<standard input>: (object: notes/app apps/v1, Kind=Deployment) container "app" has memory limit 0 (check: unset-memory-requirements, remediation: Set memory limits for your container based on its requirements. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits for details.)
+
+<standard input>: (object: notes/postgres apps/v1, Kind=StatefulSet) container "postgres" has cpu request 0 (check: unset-cpu-requirements, remediation: Set CPU requests for your container based on its requirements. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits for details.)
+
+<standard input>: (object: notes/postgres apps/v1, Kind=StatefulSet) container "postgres" has memory limit 0 (check: unset-memory-requirements, remediation: Set memory limits for your container based on its requirements. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits for details.)
