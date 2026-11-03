@@ -445,20 +445,20 @@ Tableau de bord du projet : chaque menace identifiée est associée à un contr�
 actuel ; T5 par le namespace `restricted` déjà en place ; T6/T7/T8 et les lignes Traefik/Argo/Falco
 sont les fonctionnalités à venir.
 
-| ID  | Menace                          | Contrôles déployés ou planifiés                                            | Statut        | Preuve (cible)                  |
-|-----|---------------------------------|----------------------------------------------------------------------------|---------------|---------------------------------|
-| T1  | Dépendance compromise           | Gates OSV-Scanner + Trivy, lockfile                                        | ✅ Fait        | `02-osv-red.png`                |
-| T2  | Secret fuité                    | Gitleaks dans Jenkins, GitHub push protection                              | ✅ Fait        | `02-gitleaks-red.png`           |
-| T3  | PR malveillante / Jenkinsfile   | Jenkins check required, credentials seulement dans les stages `main`-only  | ✅ Fait        | `02-pr-blocked.png`             |
-| T4  | Outil CI empoisonné             | Toolbox pinée par checksum vérifié                                         | ✅ Fait        | `02-toolbox-checksum-fail.png`  |
-| T5  | Conteneur root                  | Hadolint, Dockle, kube-linter, PSA `restricted`                            | ✅ Fait        | `04-psa-rejection.png`          |
-| T6  | Mouvement latéral              | NetworkPolicies default-deny sur Cilium                                    | ⬜ À venir     | `04-hubble-drop.png`            |
-| T7  | Token service-account volé      | `automountServiceAccountToken: false`, un SA par workload, aucun Role      | ⬜ À venir     | `04-can-i-list.png`             |
-| T8  | Image non signée                | Signature Cosign, policy Kyverno `require-signed-images`                  | ⬜ À venir     | `05-unsigned-denied.png`        |
-| T9  | Compromission Jenkins           | JCasC, port localhost-only, DinD, signature sur `main`                     | ✅ Fait        | `03-main-stage-view.png`        |
-| —   | Entrée cluster non contrôlée    | Ingress Traefik (NodePort + Ingress resource validée par kube-linter)      | ⬜ À venir     | `04-ingress-curl.png`           |
-| —   | Dérive manuelle du cluster      | Argo CD pull-based, `selfHeal: true`                                       | ⬜ À venir     | `05-self-heal.png`               |
-| —   | Shell dans un pod non détecté   | Falco + Falcosidekick → Loki, dashboard Grafana                            | ⬜ À venir     | `06-falco-alert.png`             |
+| ID  | Menace                          | Contrôles déployés ou planifiés                                            |        
+|-----|---------------------------------|----------------------------------------------------------------------------|  
+| T1  | Dépendance compromise           | Gates OSV-Scanner + Trivy, lockfile                                        |                
+| T2  | Secret fuité                    | Gitleaks dans Jenkins, GitHub push protection                              |            
+| T3  | PR malveillante / Jenkinsfile   | Jenkins check required, credentials seulement dans les stages `main`-only  |          
+| T4  | Outil CI empoisonné             | Toolbox pinée par checksum vérifié                                         |  
+| T5  | Conteneur root                  | Hadolint, Dockle, kube-linter, PSA `restricted`                            |            
+| T6  | Mouvement latéral              | NetworkPolicies default-deny sur Cilium                                    |            
+| T7  | Token service-account volé      | `automountServiceAccountToken: false`, un SA par workload, aucun Role      |           
+| T8  | Image non signée                | Signature Cosign, policy Kyverno `require-signed-images`                  |        
+| T9  | Compromission Jenkins           | JCasC, port localhost-only, DinD, signature sur `main`                     |         
+| —   | Entrée cluster non contrôlée    | Ingress Traefik (NodePort + Ingress resource validée par kube-linter)      |           
+| —   | Dérive manuelle du cluster      | Argo CD pull-based, `selfHeal: true`                                       |            
+| —   | Shell dans un pod non détecté   | Falco + Falcosidekick → Loki, dashboard Grafana                            |            
 
 Chaque cellule vide est un livrable. Une cellule pleine sans preuve est incomplète : capturer la
 preuve le jour où le travail est fait, pas après.
