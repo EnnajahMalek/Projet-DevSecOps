@@ -43,7 +43,16 @@ pipeline {
                 '''
             }
         }
-
+        stage('verification des manifests avec kube-linter et kubekonform') {
+            parallel {
+                stage('kube-linter') {
+                    steps { securiteApplicative 'kube-linter lint k8s/base/' }
+                }
+                stage('kubeconform') {
+                    steps { securiteApplicative 'kustomize build k8s/base/ | kubeconform -strict -summary' }
+                }
+            }
+        }
         stage('image check') {
             parallel {
                 stage('check avec syft') {
@@ -63,6 +72,7 @@ pipeline {
                 }
             }
         }
+
         stage('publish') {
             when { branch 'main' }
             steps {
