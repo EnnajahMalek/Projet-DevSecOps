@@ -54,50 +54,6 @@ scanners tournent dans une image *toolbox* dédiée (`ci-tools:local`), construi
 
 ![Schéma du pipeline CI](Docs/PipelineCI.png)
 
-## Structure du projet
-
-```text
-.
-├── App/                        # Application Node.js (Express + pg + Bootstrap)
-│   ├── config.js               #   validation des variables d'env (PORT, PG*)
-│   ├── index.js                #   serveur Express + routes REST
-│   ├── index.html              #   interface Bootstrap 5
-│   ├── logger.js               #   logs JSON structurés sur stdout
-│   ├── db/init-db.js           #   pool Postgres + création du schéma `notes`
-│   ├── services/               #   create / read / update / ids (requêtes paramétrées)
-│   └── test/health.test.js     #   test node:test sur GET /healthz
-├── CI/                         # Chaîne CI/CD
-│   ├── Dockerfile.naive        #   image de référence, non durcie (node:latest)
-│   ├── Dockerfile.alpine       #   image intermédiaire (node:24.11.1-alpine, USER node)
-│   ├── Dockerfile.harden       #   image durcie (multi-stage → distroless)
-│   ├── cosign.pub              #   clé publique Cosign pour la vérification
-│   └── jenkins/
-│       ├── Dockerfile          #   image Jenkins LTS (JDK21) pinée par digest + docker CLI
-│       ├── jenkins.yml         #   Configuration-as-Code (JCasC)
-│       ├── JenkinsFile         #   pipeline declaratif
-│       ├── composition-image.yml #  compose : dind + jenkins (port 8080 en 127.0.0.1)
-│       ├── plugins.txt         #   liste des plugins Jenkins
-│       ├── .env.example        #   secrets attendus (Jenkins, GitHub, Docker Hub, Cosign)
-│       └── outils/
-│           └── Dockerfile.secgate  # image toolbox contenant les 11 scanners
-├── k8s/                        # Déploiement Kubernetes local (kind)
-│   ├── kind-config.yml         #   cluster kind (CNI désactivé, NodePort 8081→30080)
-│   ├── .env.example            #   identifiants Postgres
-│   └── base/
-│       ├── namespace.yml       #   namespace `notes` (pod-security: restricted)
-│       ├── postgres.yml        #   StatefulSet Postgres durci
-│       ├── app.yml             #   Deployment de l'app, image résolue par digest
-│       └── kustomization.yml   #   kustomize (namespace + images par digest)
-├── Docs/                       # Documentation détaillée
-│   ├── PipelineCI.png
-│   ├── deployment.md
-│   ├── jenkins-config-as-code.md
-│   ├── native-hardening-results.md
-│   └── threat-model.md         # (à compléter)
-├── docker-compose.yml          # Stack locale : app + Postgres
-└── .env.example
-```
-
 ## L'application (`App/`)
 
 Application **Node.js** (`note-taking-app` v1.0.0) basée sur :
