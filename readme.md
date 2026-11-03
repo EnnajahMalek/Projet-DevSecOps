@@ -24,8 +24,7 @@ associée à une preuve (capture) à constituer.
 
 ## Sommaire
 
-- [Présentation](#présentation)
-- [Structure du projet](#structure-du-projet)
+- [Présentation](#présentation) 
 - [L'application (`App/`)](#lapplication-app)
 - [Démarrage rapide](#démarrage-rapide)
 - [Pipeline CI/CD avec Jenkins](#pipeline-cicd-avec-jenkins)
