@@ -1,0 +1,20 @@
+#regle de communication app-> postgres
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: egress-app-ver-postgres
+  namespace: notes
+spec:
+  podSelector:
+    matchLabels:
+      app: app
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+      ports:
+        - protocol: TCP
+          port: 5432

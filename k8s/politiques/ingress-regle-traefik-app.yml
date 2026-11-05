@@ -1,0 +1,20 @@
+#la regle ingress qui est traefik -> app
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: communictation-ver-app-de-traefik
+  namespace: notes
+spec:
+  podSelector:
+    matchLabels:
+      app: app
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - protocol: TCP
+          port: 3000
