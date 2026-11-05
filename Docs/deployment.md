@@ -91,3 +91,123 @@ et on trouve KubeLinter 0.8.3
 <standard input>: (object: notes/postgres apps/v1, Kind=StatefulSet) container "postgres" has cpu request 0 (check: unset-cpu-requirements, remediation: Set CPU requests for your container based on its requirements. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits for details.)
 
 <standard input>: (object: notes/postgres apps/v1, Kind=StatefulSet) container "postgres" has memory limit 0 (check: unset-memory-requirements, remediation: Set memory limits for your container based on its requirements. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits for details.)
+
+
+
+
+apres la correction, on veut appliquer les rules reseaux d'entree et de sortie 
+et pour gerer sa, il faut creer un service, 
+Un service alloue une adresse ip virtuel et un dns au pod ou plusieurs pods qui on le meme label pour notre cas on utilise le label app
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  namespace: notes     
+  labels:
+    app: app
+spec:
+  selector:
+    app: app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+
+```
+
+pour attacher ce adresse ip avec un host , on peut utiliser un ingress 
+```apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app
+  namespace: notes
+  labels:
+    app.kubernetes.io/name: app
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: app.127.0.0.1.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 80
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
