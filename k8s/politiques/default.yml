@@ -1,0 +1,11 @@
+#par defaut , rien n'est autorise 
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy # type de manifest
+metadata:
+  name: blocker-tous
+  namespace: notes
+spec:
+  podSelector: {} # indication que tous les pods sont infecter
+  policyTypes:
+    - Ingress
+    - Egress
