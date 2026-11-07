@@ -130,7 +130,7 @@ pipeline {
                     sh '''
                         git config user.email  "ci-pip@monprojet.locale"
                         git config user.name   "jenkins-casc-ci"
-                        git add k8s/base/kustomization.yaml
+                        git add k8s/base/kustomization.yml
                         git commit -m "chore(deploy): ${GIT_COMMIT} -> $(cat reports/app.digest)"
                         git pull --rebase origin main || true
                         git push https://x-access-token:${GIT_TOKEN}@github.com/${GIT_USER}/Projet-DevSecOps.git HEAD:main
