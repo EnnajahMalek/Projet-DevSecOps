@@ -6,7 +6,7 @@ resources:
 - app.yml
 namespace: notes
 images:
-- digest: sha256:f571a805d856002a8dc9bdcd42fde25c819cd3b41c18fa3e0c16a18e3b7a7b26
+- digest: sha256:be8ed532dd52b5ee39de798998a353c109250d0df587085e7369a8f5d8aec11e
   name: notes-app
   newName: ennajahmalek/projet-dev-sec-ops
 - digest: sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
