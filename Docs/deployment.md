@@ -184,17 +184,40 @@ egress-app-ver-postgres             app=app        19m
 next phase 
 monitroing avec prometheus
 
+prometheus utilise l'endpoint ``` /metrics ``` 
+il y 2 couches de monitoring, 1 la couche interne de node qui collecte les resources  et le 2eme le business layer qui est configurer avec le code pour collecter les logs 
 
 
 
+Deployment Continue avec Argo Cd , un projet open source qui facilite le deployement des projets dans kubernetes , la probleme est, jenkins n'est pas creer pour puher vers un cluster explicite, sa cree plusieurs problemes de securite en cas de compromis de jenkins, donc il est preferable d'utiliser ArgoCd pour la deploiement automatique, comment? dans le pipeline ci , si le pipeline marche ,on change l'image dans le fichier customization, il est preferable de le faire dans des repos differents, mais pour que le projet sera completement dans un seul repertoire, j'ai utilise le meme repo
 
+installation avec helm 
+``` 
+kubectl create namespace argocd
+helm repo add argo https://argoproj.github.io/argo-helm && helm repo update
+helm install argocd argo/argo-cd -n argocd
+kubectl -n argocd get pods -w
+```
 
+jusqu'a ce moment la les repos installe via helm sont
+```
 
-
-
-
-
-
+"argo" has been added to your repositories
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "traefik" chart repository
+...Successfully got an update from the "argo" chart repository
+...Successfully got an update from the "cilium" chart repository
+...Successfully got an update from the "prometheus-community" chart repository
+```
+il faut liee un port avec le les ports du nodes avec le loopback 
+```
+kubectl -n argocd port-forward svc/argocd-server 8082:443
+```
+comment obtenir le mdp admin ? 
+```
+# 1. admin password
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo
+```
 
 
 
