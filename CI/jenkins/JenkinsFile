@@ -121,14 +121,18 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'github-pat',
                                                 usernameVariable: 'GIT_USER',
                                                 passwordVariable: 'GIT_TOKEN')]) {
-                    sh '''
+
+                    securiteApplicative '''
                         DIGEST=$(cat reports/app.digest)
                         cd k8s/base
                         kustomize edit set image notes-app="$DIGEST"
+                    '''
+                    sh '''
                         git config user.email  "ci-pip@monprojet.locale"
                         git config user.name   "jenkins-casc-ci"
-                        git add kustomization.yaml
-                        git commit -m "chore(deploy): ${GIT_COMMIT} -> ${DIGEST}"
+                        git add k8s/base/kustomization.yaml
+                        git commit -m "chore(deploy): ${GIT_COMMIT} -> $(cat reports/app.digest)"
+                        git pull --rebase origin main || true
                         git push https://x-access-token:${GIT_TOKEN}@github.com/${GIT_USER}/Projet-DevSecOps.git HEAD:main
                     '''
                 }
