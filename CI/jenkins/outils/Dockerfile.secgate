@@ -90,7 +90,7 @@ RUN curl -sSfLO https://github.com/yannh/kubeconform/releases/download/v${KUBECO
  && tar -xzf kubeconform-linux-amd64.tar.gz -C /usr/local/bin kubeconform \
  && rm -f /tmp/dl/*
 
-# 11. kustomize
+# 11. kustomize pour modifier les configs des pods (principalement le kustomization)
 RUN curl -sSfLO https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz \
  && curl -sSfLO https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE_VERSION}/checksums.txt \
  && sha256sum --ignore-missing -c checksums.txt \
