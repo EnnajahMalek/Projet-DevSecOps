@@ -1,13 +1,13 @@
-  apiVersion: kustomize.config.k8s.io/v1beta1
-  kind: Kustomization
-  namespace: notes
-  resources:
-    - namespace.yml
-    - postgres.yml
-    - app.yml
-  images:
-    - name: notes-app
-      newName: ennajahmalek/projet-dev-sec-ops
-      digest: sha256:6ca99166e964ba46aa0ac1f137c669c6d988bbd697a0c8753181d1732890abab
-    - name: postgres:16-alpine
-      digest: sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- namespace.yml
+- postgres.yml
+- app.yml
+namespace: notes
+images:
+- digest: sha256:554d86fe249ca18e3333f05d17bfd7547c4c327905796bd1eb7963a53d6e0f65
+  name: notes-app
+  newName: ennajahmalek/projet-dev-sec-ops
+- digest: sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
+  name: postgres:16-alpine
