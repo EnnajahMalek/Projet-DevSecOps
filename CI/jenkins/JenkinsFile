@@ -115,6 +115,25 @@ pipeline {
                 }
             }
         }
+        stage('gitops bump') {
+            when { branch 'main' }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'github-pat',
+                                                usernameVariable: 'GIT_USER',
+                                                passwordVariable: 'GIT_TOKEN')]) {
+                    sh '''
+                        DIGEST=$(cat reports/app.digest)
+                        cd k8s/base
+                        kustomize edit set image notes-app="$DIGEST"
+                        git config user.email  "ci-pip@monprojet.locale"
+                        git config user.name   "jenkins-casc-ci"
+                        git add kustomization.yaml
+                        git commit -m "chore(deploy): ${GIT_COMMIT} -> ${DIGEST}"
+                        git push https://x-access-token:${GIT_TOKEN}@github.com/${GIT_USER}/Projet-DevSecOps.git HEAD:main
+                    '''
+                }
+            }
+        }
     }
 
     post {
