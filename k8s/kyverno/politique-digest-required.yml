@@ -1,0 +1,18 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: images-accepte-via-digest
+spec:
+  validationActions: [Deny]
+  matchConstraints:
+    namespaceSelector:
+      matchLabels: { kubernetes.io/metadata.name: notes }
+    resourceRules:
+      - { apiGroups: [""], apiVersions: ["v1"], operations: ["CREATE","UPDATE"], resources: ["pods"] }
+  validations:
+    - expression: >-
+        object.spec.containers.all(c,
+          c.image.startsWith('ennajahmalek/projet-dev-sec-ops@sha256:')
+          || c.image == 'postgres@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab'
+          || c.image == 'docker.io/library/postgres@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab')
+      message: "Image non autorisée : app signée ou postgres épinglé uniquement."

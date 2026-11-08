@@ -213,27 +213,43 @@ il faut liee un port avec le les ports du nodes avec le loopback
 ```
 kubectl -n argocd port-forward svc/argocd-server 8082:443
 ```
+on pointe le port 443 vers le port 8082 qui est publique
 comment obtenir le mdp admin ? 
 ```
 # 1. admin password
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo
 ```
 
+dans l'interface localhost8082 on cree une application et on peut synchroniser automatiqument ou manuelment
+deployment du kyverno dans un namespace de notre neoud
+```
+...Successfully got an update from the "kyverno" chart repository
+...Successfully got an update from the "traefik" chart repository
+...Successfully got an update from the "argo" chart repository
+...Successfully got an update from the "cilium" chart repository
+...Successfully got an update from the "prometheus-community" chart repository
+```
+
+une probleme que j'ai commit qu'il faut ajouter un tag pour ajouter une 
 
 
+couche de securite additionel
+
+les 4 rules que j'ai ajoute  ils sont sur le dossier kyverno 
+teste si un image n'est pas bien tage et elle ne vient pas de l'image 
+```
+kubectl -n notes run bad --image=nginx:latestst
+Error from server (Forbidden): pods "bad" is forbidden: violates PodSecurity "restricted:latest": allowPrivilegeEscalation != false (container "bad" must set securityContext.allowPrivilegeEscalation=false), unrestricted capabilities (container "bad" must set securityContext.capabilities.drop=["ALL"]), runAsNonRoot != true (pod or container "bad" must set securityContext.runAsNonRoot=true), seccompProfile (pod or container "bad" must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")
 
 
+```
+ deployement ers azure (compte etudiant)
 
-
-
-
-
-
-
-
-
-
-
+```
+kubectl config get-contexts
+kubectl config use-context devsecops-aks
+```
+changement de contexte 
 
 
 
