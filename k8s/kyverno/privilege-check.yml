@@ -1,0 +1,18 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: couche-securite
+spec:
+  validationActions: [Deny]
+  matchConstraints:
+    namespaceSelector:
+      matchLabels: { kubernetes.io/metadata.name: notes }
+    resourceRules:
+      - { apiGroups: [""], apiVersions: ["v1"], operations: ["CREATE","UPDATE"], resources: ["pods"] }
+  validations:
+    - expression: >-
+        object.spec.?securityContext.?runAsNonRoot.orValue(false)
+        && object.spec.containers.all(c,
+          c.?securityContext.?allowPrivilegeEscalation.orValue(true) == false
+          && !c.?securityContext.?privileged.orValue(false))
+      message: "Non-root obligatoire + pas d'escalade de privilèges."

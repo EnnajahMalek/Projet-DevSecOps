@@ -1,0 +1,14 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: equipe-malek
+spec:
+  validationActions: [Deny]
+  matchConstraints:
+    namespaceSelector:
+      matchLabels: { kubernetes.io/metadata.name: notes }
+    resourceRules:
+      - { apiGroups: [""], apiVersions: ["v1"], operations: ["CREATE","UPDATE"], resources: ["pods"] }
+  validations:
+    - expression: "object.metadata.?labels.?equipe.orValue('') == 'malek'"
+      message: "Les pods doivent avoir le label 'equipe: malek'."

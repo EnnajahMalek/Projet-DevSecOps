@@ -11,6 +11,7 @@ spec:
     metadata:
       labels:
         app: app
+        equipe: malek
     spec:
       imagePullSecrets:
         - name: dockerhub-pull

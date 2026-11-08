@@ -23,6 +23,7 @@ spec:
     metadata:
       labels:
         app: postgres
+        equipe: malek
     spec:
       automountServiceAccountToken: false
       securityContext:

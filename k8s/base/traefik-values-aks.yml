@@ -1,0 +1,8 @@
+service:
+  type: LoadBalancer
+
+ports:
+  web:
+    exposedPort: 80
+  websecure:
+    exposedPort: 443
