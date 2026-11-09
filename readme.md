@@ -432,9 +432,6 @@ réponse la plus forte en entretien.
 - **Falco sur kind** : le probe eBPF inspecte le noyau hôte (les nœuds kind sont des conteneurs
   Docker), donc Falco remonte des syscalls de tout ce qui tourne sur la VM, y compris Jenkins. Le
   bruit est filtré par namespace en démo, mais la limite est réelle.
-- **`Docs/threat-model.md`** est actuellement vide (0 octet) — le tableau T1–T9 ci-dessus sert de
-  modèle de menaces de facto ; le document `Docs/threat-model.md` reste à rédiger (STRIDE complet
-  sur l'app + le pipeline + le cluster), voir [Limites connues](#limites-connues).
 - **Pas de monitoring de disponibilité** : pas de sonde Liveness/Readiness sur l'app, pas d'alerting
   sur la latence ou le taux d'erreur. Hors périmètre actuel, à mentionner.
 - **Rebuild non-IaC** : le `Makefile` + `infra/up.sh` reconstruisent le lab depuis des scripts, pas
